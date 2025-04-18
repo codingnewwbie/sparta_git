@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using System.Collections.Generic;
 using static ConsoleApp1.personalProject;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 
 namespace ConsoleApp1
 {
@@ -17,9 +18,17 @@ namespace ConsoleApp1
         static void Main(string[] args)
         {
 
-            Status status = new Status();
+            SavePoint data = new SavePoint();
 
-            CreateItem createItem = new CreateItem();
+            data = data.LoadGame();
+
+            Status status = data.Status;
+
+            List<Item> items = data.Items;
+
+            int equipAtk = data.EquipAtk;
+
+            int equipDef = data.EquipDef;
 
             PlayerActive playerActive = new PlayerActive();
 
@@ -35,37 +44,7 @@ namespace ConsoleApp1
 
             Dungeon dungeon;
 
-
-            // 값 제대로 담겼는지 확인용
-            //foreach (Item item in createItem.itemList)
-            //{
-            //    Console.WriteLine("Name" + item.Name);
-            //    Console.WriteLine("Desc" + item.Desc);
-            //    Console.WriteLine("장비여부" + item.IsEuipmented);
-            //    Console.WriteLine("구매여부" + item.IsPurchased);
-            //    Console.WriteLine("장비포인트" + item.StatPoint);
-            //    Console.WriteLine("장비타입" + item.StatType);
-            //    Console.WriteLine("HowMuch" + item.HowMuch);
-            //}
-
-            // items.Count(item => item.isEquipped)
-
-            // List담긴 값 불러오기
-            //for (int i = 0; i < itemList.Count; i++) {
-            //        Console.WriteLine($"{itemList[i].Name} \t| {itemList[i].Desc} \t| {ConvertType(itemList[i].StatType)} +{itemList[i].StatPoint}");
-            //}
-
-
             bool isPlaying = true;
-            int equipAtk = 0;
-            int equipDef = 0;
-
-            // 레벨업 테스트
-            //for (int i = 0; i < 12; i++)
-            //{
-            //    status.LevelUp(status);
-            //    Console.WriteLine($"레벨: {status.Level}, 경험치: {status.Exp}");
-            //}
 
             while (isPlaying)
             {
@@ -83,19 +62,22 @@ namespace ConsoleApp1
                     case (int)PlayerActive.ShowInventory:
                         {
                             showInventory = new ShowInventory();
-                            showInventory.DisplayInventory(createItem.itemList, ref equipAtk, ref equipDef);
+                            showInventory.DisplayInventory(items, ref equipAtk, ref equipDef);
                             break;
                         }
 
                     case (int)PlayerActive.ShowShop:
                         {
                             showShop = new ShowShop();
-                            showShop.DisplayShop(createItem.itemList, status, ref equipAtk, ref equipDef);
+                            showShop.DisplayShop(items, status, ref equipAtk, ref equipDef);
                             break;
                         }
                     case (int)PlayerActive.BeforeMenu:
                         {
                             Console.WriteLine("게임을 종료합니다.");
+                            data.EquipAtk = equipAtk;
+                            data.EquipDef = equipDef;
+                            data.SaveGame(data);
                             isPlaying = false;
                             break;
                         }
@@ -115,7 +97,7 @@ namespace ConsoleApp1
                         {
                             Console.WriteLine("잘못된 입력입니다.");
                             break;
-                        }       
+                        }
                 }
             }
         }
@@ -134,7 +116,8 @@ namespace ConsoleApp1
             public int Gold { get; set; }
             public int Exp { get; set; }
 
-            public Status() {
+            public Status()
+            {
                 Level = "01";
                 Name = "John Doe";
                 ClassName = "전사";
@@ -204,10 +187,12 @@ namespace ConsoleApp1
 
 
 
-        public class CreateItem {
+        public class CreateItem
+        {
             public List<Item> itemList;
 
-            public CreateItem() {
+            public CreateItem()
+            {
                 itemList = new List<Item>();
                 itemList.Add(new Item("수련자 갑옷", "수련에 도움을 주는 갑옷입니다.", "def", 5, 1000));
                 itemList.Add(new Item("무쇠 갑옷", "무쇠로 만들어져 튼튼한 갑옷입니다.", "def", 9, 2000));
@@ -350,8 +335,10 @@ namespace ConsoleApp1
                             // 선택 장비가 장착되어 있지 않을 때, 1. 해당 statType과 같은 모든 purchasedItems의 isEuipmented false로, 2. equipDef랑 equipAtk 전부 빼기 or 0으로 초기화.
                             else
                             {
-                                foreach (var item in purchasedItems) {
-                                    if (item.IsEuipmented && item.StatType == purchasedItems[intEquipmentActive - 1].StatType) {
+                                foreach (var item in purchasedItems)
+                                {
+                                    if (item.IsEuipmented && item.StatType == purchasedItems[intEquipmentActive - 1].StatType)
+                                    {
                                         item.IsEuipmented = false;
 
                                         if (item.StatType == "def")
@@ -363,7 +350,7 @@ namespace ConsoleApp1
                                             equipAtk -= item.StatPoint;
                                         }
                                     }
-                                
+
                                 }
 
                                 purchasedItems[intEquipmentActive - 1].IsEuipmented = !purchasedItems[intEquipmentActive - 1].IsEuipmented;
@@ -418,54 +405,54 @@ namespace ConsoleApp1
             }
 
             // 상점 입장 --> 구매 시 화면
-            public void DisplayShopPurchase(List<Item> itemList, Status status )
+            public void DisplayShopPurchase(List<Item> itemList, Status status)
             {
-                    bool isKeepingPurchase = true;
+                bool isKeepingPurchase = true;
 
-                    while (isKeepingPurchase)
+                while (isKeepingPurchase)
+                {
+
+                    Console.WriteLine($"상점 - 아이템 구매\n필요한 아이템을 얻을 수 있는 상점입니다.\n\n[보유 골드]\n{status.Gold} G \n");
+
+                    Console.WriteLine("[아이템 목록]");
+
+                    int count2 = 1;
+
+                    for (int i = 0; i < itemList.Count; i++)
                     {
+                        Console.WriteLine($"- {count2}{(itemList[i].IsEuipmented ? " [E]" : "")} {itemList[i].Name} \t| {itemList[i].Desc} \t| {ConvertType(itemList[i].StatType)} +{itemList[i].StatPoint} \t| {(itemList[i].IsPurchased ? "구매완료" : itemList[i].HowMuch + " G")}");
+                        count2++;
+                    }
 
-                        Console.WriteLine($"상점 - 아이템 구매\n필요한 아이템을 얻을 수 있는 상점입니다.\n\n[보유 골드]\n{status.Gold} G \n");
+                    Console.WriteLine("0.나가기");
+                    Console.Write("원하시는 행동을 입력해주세요. \n>>");
 
-                        Console.WriteLine("[아이템 목록]");
-
-                        int count2 = 1;
-
-                        for (int i = 0; i < itemList.Count; i++)
-                        {
-                            Console.WriteLine($"- {count2}{(itemList[i].IsEuipmented ? " [E]" : "")} {itemList[i].Name} \t| {itemList[i].Desc} \t| {ConvertType(itemList[i].StatType)} +{itemList[i].StatPoint} \t| {(itemList[i].IsPurchased ? "구매완료" : itemList[i].HowMuch + " G")}");
-                            count2++;
-                        }
-
-                        Console.WriteLine("0.나가기");
-                        Console.Write("원하시는 행동을 입력해주세요. \n>>");
-
-                        string purchaseEqu = Console.ReadLine();
-                        int numPurchaseEqu = int.Parse(purchaseEqu);
+                    string purchaseEqu = Console.ReadLine();
+                    int numPurchaseEqu = int.Parse(purchaseEqu);
 
                     if (numPurchaseEqu > 0 && numPurchaseEqu < count2)
-                        {
+                    {
 
-                            if (itemList[numPurchaseEqu - 1].IsPurchased == false && status.Gold >= itemList[numPurchaseEqu - 1].HowMuch)
-                            {
-                                Console.WriteLine("구매를 완료했습니다."); status.Gold -= itemList[numPurchaseEqu - 1].HowMuch; (itemList[numPurchaseEqu - 1].IsPurchased) = true;
-                            }
-                            else if (status.Gold < itemList[numPurchaseEqu - 1].HowMuch) { Console.WriteLine("Gold 가 부족합니다."); }
-                            else if (itemList[numPurchaseEqu - 1].IsPurchased == true) { Console.WriteLine("이미 구매한 아이템입니다."); }
-
-                        }
-
-                        else if (numPurchaseEqu == 0)
+                        if (itemList[numPurchaseEqu - 1].IsPurchased == false && status.Gold >= itemList[numPurchaseEqu - 1].HowMuch)
                         {
-                            isKeepingPurchase = false;
-                            return;
+                            Console.WriteLine("구매를 완료했습니다."); status.Gold -= itemList[numPurchaseEqu - 1].HowMuch; (itemList[numPurchaseEqu - 1].IsPurchased) = true;
                         }
-                        else
-                        {
-                            Console.WriteLine("잘못된 입력입니다.");
-                        }
+                        else if (status.Gold < itemList[numPurchaseEqu - 1].HowMuch) { Console.WriteLine("Gold 가 부족합니다."); }
+                        else if (itemList[numPurchaseEqu - 1].IsPurchased == true) { Console.WriteLine("이미 구매한 아이템입니다."); }
+
+                    }
+
+                    else if (numPurchaseEqu == 0)
+                    {
+                        isKeepingPurchase = false;
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("잘못된 입력입니다.");
                     }
                 }
+            }
 
             // 상점 입장 --> 판매 시 화면
             public void DisplayShopSale(List<Item> itemList, Status status, ref int equipAtk, ref int equipDef) // 여기다가 ref 안쓰고 해보자
@@ -485,7 +472,7 @@ namespace ConsoleApp1
                     {
                         if (itemList[i].IsPurchased == true)
                         {
-                            Console.WriteLine($"- {(itemList[i].IsEuipmented ? "[E]" : "")}{itemList[i].Name} \t| {itemList[i].Desc} \t| {ConvertType(itemList[i].StatType)} +{itemList[i].StatPoint}");
+                            Console.WriteLine($"-{count3} {(itemList[i].IsEuipmented ? "[E]" : "")}{itemList[i].Name} \t| {itemList[i].Desc} \t| {ConvertType(itemList[i].StatType)} +{itemList[i].StatPoint}");
                         }
                     }
 
@@ -559,7 +546,7 @@ namespace ConsoleApp1
                         getRest(status);
                     }
                 }
-                else if(restActive == "0") { return; }
+                else if (restActive == "0") { return; }
                 else
                 {
                     Console.WriteLine("잘못 입력하셨습니다.");
@@ -587,17 +574,17 @@ namespace ConsoleApp1
                         int easyLevel = 5;
                         EnterDungeon(status, easyLevel, equipAtk, equipDef);
                         break;
-                    
+
                     case "2":
                         int normalDificulty = 11;
                         EnterDungeon(status, normalDificulty, equipAtk, equipDef);
                         break;
-                    
+
                     case "3":
                         int hardDificulty = 17;
                         EnterDungeon(status, hardDificulty, equipAtk, equipDef);
                         break;
-                    
+
                     case "0":
                         return;
 
@@ -615,17 +602,21 @@ namespace ConsoleApp1
                 int defMinushealthy = (status.DefensePoint + equipDef) - dificulty;
                 int totalMinusHealthy = randomMinusHealthy + (defMinushealthy * -1);
                 int clearReward = 1;
+                string dificultyString = "";
 
-                switch(dificulty)
+                switch (dificulty)
                 {
                     case 5:
                         clearReward = 1000;
+                        dificultyString = "쉬운 던전";
                         break;
                     case 11:
                         clearReward = 1700;
+                        dificultyString = "일반 던전";
                         break;
                     case 17:
                         clearReward = 2500;
+                        dificultyString = "어려운 던전";
                         break;
                     default:
                         Console.WriteLine("난이도 설정에 문제가 있으니 코드 확인해보세요");
@@ -651,18 +642,80 @@ namespace ConsoleApp1
                     // 2. 공격력에 비례해 보상 획득 증가
                     else
                     {
+                    Console.WriteLine("던전 클리어\n축하합니다!!");
+                    Console.WriteLine($"{dificultyString}을 클리어 하였습니다.");
+                    Console.WriteLine($"\n[탐험 결과]\n체력 {status.HealthPoint} -> {status.HealthPoint - totalMinusHealthy}");
+                    Console.WriteLine($"Gold {status.Gold} G -> {status.Gold + totalReward} G");
+                    Console.WriteLine("\n0. 나가기");
+                    Console.Write("원하시는 행동을 입력해주세요. \n>>"); ;
+
                         status.HealthPoint -= totalMinusHealthy;
                         status.Gold += totalReward;
                         status.LevelUp(status);
+
+                        string dungeonClearActive = Console.ReadLine();
+
+                        if (dungeonClearActive == "0") { return; } else { Console.WriteLine("잘못 입력하셨습니다.");  }
                     }
                 }
-                // 권장 방어력보다 높으면 무조건 성공.
+                // 권장 방어력보다 높으면 무조건 성공, 체력 깍이고 골드 추가하고 경험치 추가.
                 else
                 {
+                    Console.WriteLine("던전 클리어\n축하합니다!!");
+                    Console.WriteLine($"{dificultyString}을 클리어 하였습니다.");
+                    Console.WriteLine($"\n[탐험 결과]\n체력 {status.HealthPoint} -> {status.HealthPoint - totalMinusHealthy}");
+                    Console.WriteLine($"Gold {status.Gold} G -> {status.Gold + totalReward} G");
+                    Console.WriteLine("\n0. 나가기");
+                    Console.Write("원하시는 행동을 입력해주세요. \n>>");
+
                     status.HealthPoint -= totalMinusHealthy;
                     status.Gold += totalReward;
                     status.LevelUp(status);
+
+                    string dungeonClearActive = Console.ReadLine();
+
+                    if (dungeonClearActive == "0") { return; } else { Console.WriteLine("잘못 입력하셨습니다.");  }
                 }
+            }
+        }
+
+
+        public class SavePoint
+        {
+            public Status Status { get; set; }
+            public List<Item> Items { get; set; }
+            public int EquipAtk { get; set; }
+            public int EquipDef { get; set; }
+
+            public void SaveGame(SavePoint data)
+            {
+                var json = JsonSerializer.Serialize(data);
+                File.WriteAllText("savegame.json", json);
+
+                //var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+                //var json = JsonSerializer.Serialize(data);
+                //File.WriteAllText("savegame.json", json);
+            }
+
+            public SavePoint LoadGame()
+            {
+                if (File.Exists("savegame.json"))
+                {
+                    string json = File.ReadAllText("savegame.json");
+                    return JsonSerializer.Deserialize<SavePoint>(json);
+                }
+
+                Status status = new Status();
+
+                CreateItem createItem = new CreateItem();
+
+                return new SavePoint()
+                {
+                    Status = status,
+                    Items = createItem.itemList,
+                    EquipAtk = 0,
+                    EquipDef = 0
+                };
             }
         }
     }
