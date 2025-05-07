@@ -47,8 +47,6 @@ public class UIManager : MonoBehaviour
         explainUI = GetComponentInChildren<ExplainUI>(true);
         
         ChangeState(UIState.Explain);
-
-        // ChangeState(UIState.Home);
     }
 
     public void ChangeState(UIState state)

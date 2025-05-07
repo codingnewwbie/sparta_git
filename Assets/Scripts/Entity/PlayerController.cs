@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -10,6 +11,10 @@ public class PlayerController : BaseController
     private Camera camera;
     
     private GameManager gameManager;
+
+    private NPCController currentNPC;
+    
+    [SerializeField] private Animator playerAnimator;
     
     public void Init(GameManager gameManager)
     {
@@ -17,10 +22,22 @@ public class PlayerController : BaseController
         camera = Camera.main;
     }
     
+    private void Start() {
+        int skinIndex = PlayerPrefs.GetInt("SkinIndex", 0);
+        if (skinIndex == 1)
+        {
+            playerAnimator.SetTrigger("IsSkin");
+        }
+    }
+    
     private void OnMove(InputValue inputValue)
     {
         movementDirection = inputValue.Get<Vector2>();
-        movementDirection = movementDirection.normalized;
+        
+        if (isBattle)
+        {
+            movementDirection = movementDirection.normalized;
+        }
     }
     
     private void OnLook(InputValue inputValue)
@@ -39,14 +56,31 @@ public class PlayerController : BaseController
         }
     }
     
-    private void OnJump(InputValue inputValue)
-    {
-        // UI에 마우스가 올라가 있으면 이벤트 점프 멈춤
-        // if (EventSystem.current.IsPointerOverGameObject())
-        // {
-        //     return;
-        // }
-        isJumpping = inputValue.isPressed;
-    }
     
+    public void OnTalk(InputValue value)
+    {
+        if (currentNPC != null && value.isPressed)
+        {
+            currentNPC.Interact();
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("NPC"))
+        {
+            currentNPC = collision.GetComponent<NPCController>();
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.CompareTag("NPC"))
+        {
+            if (currentNPC != null && currentNPC.gameObject == collision.gameObject)
+            {
+                currentNPC = null;
+            }
+        }
+    }
 }

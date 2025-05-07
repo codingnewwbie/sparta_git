@@ -2,17 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Elf : MonoBehaviour
+public class Elf : NPCController
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField] private ElfUI elfUI;
 
-    // Update is called once per frame
-    void Update()
+    public override void Init(NPCManager npcManager)
     {
-        
+        base.Init(npcManager);
+        elfUI.ShowUI(false);
+    }
+    
+    public override void Interact()
+    {
+        elfUI.Init(bestScore, bestCombo);
+        elfUI.ShowUI(true);
+    }
+    
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        elfUI.ShowUI(false);
     }
 }

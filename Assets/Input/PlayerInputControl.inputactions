@@ -24,13 +24,13 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Jump",
-                    "type": "Value",
-                    "id": "a6fdda95-a9d8-4755-b185-2ea5fbec41cc",
-                    "expectedControlType": "",
+                    "name": "Talk",
+                    "type": "Button",
+                    "id": "6a5e13a7-fee1-4e2a-a613-7ec15d455d89",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": true
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -102,12 +102,12 @@
                 },
                 {
                     "name": "",
-                    "id": "c354d294-3918-45f9-b504-676033ade8c5",
-                    "path": "<Mouse>/leftButton",
+                    "id": "ea985d02-4f16-45a3-a8d5-809702fe5846",
+                    "path": "<Keyboard>/f",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Jump",
+                    "action": "Talk",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

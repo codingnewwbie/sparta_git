@@ -17,14 +17,4 @@ public class AnimatorController : MonoBehaviour
     {
        animator.SetBool(IsMove, obj.magnitude > 0.5f);
     }
-    
-       // public void Damage()
-       // {
-       //    animator.SetBool(IsDamage, true);
-       // }
-       //
-       // public void InvincibilityEnd()
-       // {
-       //    animator.SetBool(IsDamage, false);
-       // }
 }

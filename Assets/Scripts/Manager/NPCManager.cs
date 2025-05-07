@@ -1,12 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-public enum NPCState
-{
-    None,
-    Dwarf,
-    Elf,
-}
 
 public class NPCManager : MonoBehaviour
 {
@@ -17,7 +11,6 @@ public class NPCManager : MonoBehaviour
         get => instance;
     }
     
-    private NPCState currentState = NPCState.None;
     private Dwarf dwarf = null;
     private Elf elf = null;
 
@@ -28,8 +21,11 @@ public class NPCManager : MonoBehaviour
         dwarf = GetComponentInChildren<Dwarf>(true); // true => 꺼져있는 UI도 포함시킬거냐
         dwarf?.Init(this);
         
-        // ChangeNPCState(NPCState.Dwarf);
-
+        elf = GetComponentInChildren<Elf>(true);
+        elf?.Init(this);
+        
+        
+        
     }
 
     // public void ChangeNPCState(NPCState state)

@@ -15,8 +15,8 @@ public class DwarfUI : MonoBehaviour
         bestComboText.text = bestCombo.ToString();
     }
 
-    public void ShowUI(bool show)
+    public void ShowUI(bool isShow)
     {
-        canvas.gameObject.SetActive(show);
+        canvas.gameObject.SetActive(isShow);
     }
 }
